@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Smart Healthcare System{% endblock %}
+{% block body_class %}dashboard-body{% endblock %}
+{% block content %}
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-box">
+                <p class="brand-mini">Smart Care</p>
+                <h2>Healthcare Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#overview">Overview</a>
+                <a href="#entry-form">Add Record</a>
+                <a href="#charts">Graphs</a>
+                <a href="#analysis">Analysis</a>
+                <a href="#doctors">Doctors</a>
+                <a href="#records">Reports</a>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <span class="role-badge">{{ user["role"] }}</span>
+                <h3>{{ user["full_name"] }}</h3>
+                <p>{{ user["username"] }}</p>
+            </div>
+            <a class="logout-btn" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </aside>
+
+    <main class="dashboard-main">
+        <section class="top-banner">
+            <div>
+                <p class="eyebrow">Offline-First Monitoring</p>
+                <h1>Welcome, {{ user["full_name"] }}</h1>
+                <p>
+                    This system is for educational purposes only and not a replacement for professional medical advice.
+                </p>
+            </div>
+            <div class="top-banner-pill">
+                <span>Local SQLite</span>
+                <span>PDF Reports</span>
+                <span>Rule-Based Analysis</span>
+            </div>
+        </section>
+
+        {% if latest_record and latest_record["status"] == "Critical" %}
+            <section class="alert-panel critical-alert">
+                <h3>Emergency! Seek medical help</h3>
+                <p>{{ latest_record["explanation"] }}</p>
+                <p class="alert-note">SMS alert sent to emergency contact</p>
+            </section>
+        {% elif latest_record and latest_record["status"] == "Warning" %}
+            <section class="alert-panel warning-alert">
+                <h3>Warning: Please monitor the patient carefully</h3>
+                <p>{{ latest_record["explanation"] }}</p>
+            </section>
+        {% else %}
+            <section class="alert-panel safe-alert">
+                <h3>System Status</h3>
+                <p>No emergency alerts right now. Continue regular monitoring and keep records updated.</p>
+            </section>
+        {% endif %}
+
+        <section id="overview" class="section-block">
+            <div class="section-heading">
+                <h2>Health Overview</h2>
+                <p>Quick snapshot of the latest saved information.</p>
+            </div>
+
+            <div class="metric-grid">
+                <article class="metric-card">
+                    <p>Total Records</p>
+                    <h3>{{ cards["records_count"] }}</h3>
+                </article>
+                <article class="metric-card">
+                    <p>Latest Temperature</p>
+                    <h3>{{ cards["latest_temperature"] }}</h3>
+                </article>
+                <article class="metric-card">
+                    <p>Latest Heart Rate</p>
+                    <h3>{{ cards["latest_heart_rate"] }}</h3>
+                </article>
+                <article class="metric-card">
+                    <p>Latest Status</p>
+                    <h3>{{ cards["latest_status"] }}</h3>
+                </article>
+            </div>
+        </section>
+
+        <section id="entry-form" class="section-block two-column-layout">
+            <div class="panel-card">
+                <div class="section-heading">
+                    <h2>Store Patient Health Record</h2>
+                    <p>All entries are saved locally with an auto-generated date and time.</p>
+                </div>
+                <form method="POST" action="{{ url_for('add_record') }}" class="record-form">
+                    <div class="form-grid">
+                        <div>
+                            <label>Patient Name</label>
+                            <input type="text" name="patient_name" value="{{ user['full_name'] if user['role'] == 'Patient' else '' }}" required>
+                        </div>
+                        <div>
+                            <label>Age</label>
+                            <input type="number" name="age" min="1" max="120" required>
+                        </div>
+                        <div>
+                            <label>Gender</label>
+                            <select name="gender" required>
+                                <option value="Female">Female</option>
+                                <option value="Male">Male</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Treatment Preference</label>
+                            <select name="preference" required>
+                                <option value="Allopathy">Allopathy</option>
+                                <option value="Ayurvedic">Ayurvedic</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Body Temperature (°F)</label>
+                            <input type="number" name="body_temperature" min="90" max="110" step="0.1" required>
+                        </div>
+                        <div>
+                            <label>Heart Rate (bpm)</label>
+                            <input type="number" name="heart_rate" min="20" max="220" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label>Symptoms</label>
+                        <textarea name="symptoms" rows="4" placeholder="Example: fever, cough, weakness" required></textarea>
+                    </div>
+                    <button type="submit" class="primary-btn">Save Health Record</button>
+                </form>
+            </div>
+
+            <div id="analysis" class="panel-card">
+                <div class="section-heading">
+                    <h2>Latest Analysis</h2>
+                    <p>The rule-based engine reads the latest saved temperature and heart rate.</p>
+                </div>
+                {% if latest_record %}
+                    <div class="analysis-stack">
+                        <div class="analysis-pill status-{{ latest_record['status']|lower }}">{{ latest_record["status"] }}</div>
+                        <p><strong>Temperature Category:</strong> {{ latest_record["temp_category"] }}</p>
+                        <p><strong>Heart Rate Category:</strong> {{ latest_record["heart_category"] }}</p>
+                        <p><strong>Detected Condition:</strong> {{ latest_record["condition"].replace("-", " ").title() }}</p>
+                        <p><strong>Explanation:</strong> {{ latest_record["explanation"] }}</p>
+                        <p><strong>Suggestions:</strong> {{ latest_record["suggestions"] }}</p>
+                    </div>
+                {% else %}
+                    <p class="empty-state">Save a health record to see analysis, suggestions, and doctor recommendations.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section id="charts" class="section-block">
+            <div class="section-heading">
+                <h2>Static Graphs</h2>
+                <p>Offline line graphs based on locally stored health records.</p>
+            </div>
+            <div class="chart-grid">
+                <div class="panel-card chart-card">
+                    <h3>Temperature vs Time</h3>
+                    <canvas id="temperatureChart" height="220"></canvas>
+                </div>
+                <div class="panel-card chart-card">
+                    <h3>Heart Rate vs Time</h3>
+                    <canvas id="heartRateChart" height="220"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="doctors" class="section-block">
+            <div class="section-heading">
+                <h2>Recommended Doctors</h2>
+                <p>Static doctor list filtered using the detected condition from the latest record.</p>
+            </div>
+            <div class="doctor-grid">
+                {% for doctor in doctors %}
+                    <article class="panel-card doctor-card">
+                        <h3>{{ doctor["name"] }}</h3>
+                        <p><strong>Specialization:</strong> {{ doctor["specialization"] }}</p>
+                        <p><strong>Contact:</strong> {{ doctor["contact"] }}</p>
+                    </article>
+                {% else %}
+                    <article class="panel-card doctor-card">
+                        <h3>No recommendation yet</h3>
+                        <p>Add a health record first to display matched doctor suggestions.</p>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section id="records" class="section-block">
+            <div class="section-heading">
+                <h2>Saved Records and Reports</h2>
+                <p>Download offline PDF reports for any saved record.</p>
+            </div>
+            <div class="panel-card table-panel">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date / Time</th>
+                                <th>Patient</th>
+                                <th>Temperature</th>
+                                <th>Heart Rate</th>
+                                <th>Status</th>
+                                <th>Preference</th>
+                                <th>Report</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                                <tr>
+                                    <td>{{ record["created_at"] }}</td>
+                                    <td>{{ record["patient_name"] }}</td>
+                                    <td>{{ "%.1f"|format(record["body_temperature"]) }} °F</td>
+                                    <td>{{ record["heart_rate"] }} bpm</td>
+                                    <td><span class="table-status status-{{ record['status']|lower }}">{{ record["status"] }}</span></td>
+                                    <td>{{ record["preference"] }}</td>
+                                    <td><a class="secondary-btn" href="{{ url_for('download_report', record_id=record['id']) }}">Download PDF</a></td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="empty-cell">No records saved yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/chart.umd.js', v='20260502') }}"></script>
+<script>
+    window.dashboardData = {{ chart_payload | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js', v='20260502') }}"></script>
+{% endblock %}
