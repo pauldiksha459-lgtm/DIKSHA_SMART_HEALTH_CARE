@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Signup | Smart Healthcare System{% endblock %}
+{% block body_class %}auth-body{% endblock %}
+{% block content %}
+<main class="auth-layout">
+    <section class="auth-panel hero-panel">
+        <p class="eyebrow">Secure Local Access</p>
+        <h1>Create Your Account</h1>
+        <p class="hero-text">
+            Register as a doctor or patient, store credentials securely, and continue using
+            the application without depending on internet access.
+        </p>
+        <div class="feature-stack">
+            <div class="feature-item">Passwords are hashed before storing</div>
+            <div class="feature-item">Records stay on the local SQLite database</div>
+            <div class="feature-item">Simple interface for exhibition presentation</div>
+        </div>
+    </section>
+
+    <section class="auth-panel form-panel">
+        <h2>Signup</h2>
+        <form method="POST" class="auth-form">
+            <label>Full Name</label>
+            <input type="text" name="full_name" placeholder="Enter full name" required>
+
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Choose a username" required>
+
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Create a password" required>
+
+            <label>Role</label>
+            <select name="role" required>
+                <option value="Patient">Patient</option>
+                <option value="Doctor">Doctor</option>
+            </select>
+
+            <button type="submit" class="primary-btn">Create Account</button>
+        </form>
+
+        <p class="muted-line">
+            Already registered? <a href="{{ url_for('login') }}">Log in here</a>
+        </p>
+        <p class="disclaimer-line">
+            This system is for educational purposes only and not a replacement for professional medical advice.
+        </p>
+    </section>
+</main>
+{% endblock %}
