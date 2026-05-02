@@ -1,0 +1,107 @@
+{% extends "base.html" %} {% block title %}Dashboard | Smart Healthcare System{% endblock %} {% block body_class %}dashboard-body{% endblock %} {% block content %}
+Smart Care
+
+Healthcare Dashboard
+Overview Add Record Graphs Analysis Doctors Reports
+{{ user["role"] }}
+{{ user["full_name"] }}
+{{ user["username"] }}
+
+Logout
+Offline-First Monitoring
+
+Welcome, {{ user["full_name"] }}
+This system is for educational purposes only and not a replacement for professional medical advice.
+
+Local SQLite PDF Reports Rule-Based Analysis
+{% if latest_record and latest_record["status"] == "Critical" %}
+Emergency! Seek medical help
+{{ latest_record["explanation"] }}
+
+SMS alert sent to emergency contact
+
+{% elif latest_record and latest_record["status"] == "Warning" %}
+Warning: Please monitor the patient carefully
+{{ latest_record["explanation"] }}
+
+{% else %}
+System Status
+No emergency alerts right now. Continue regular monitoring and keep records updated.
+
+{% endif %}
+Health Overview
+Quick snapshot of the latest saved information.
+
+Total Records
+
+{{ cards["records_count"] }}
+Latest Temperature
+
+{{ cards["latest_temperature"] }}
+Latest Heart Rate
+
+{{ cards["latest_heart_rate"] }}
+Latest Status
+
+{{ cards["latest_status"] }}
+Store Patient Health Record
+All entries are saved locally with an auto-generated date and time.
+
+Patient Name 
+{{ user['full_name'] if user['role'] == 'Patient' else '' }}
+Age 
+Gender 
+Female
+Treatment Preference 
+Allopathy
+Body Temperature (Â°F) 
+Heart Rate (bpm) 
+Symptoms 
+Example: fever, cough, weakness
+Save Health Record
+Latest Analysis
+The rule-based engine reads the latest saved temperature and heart rate.
+
+{% if latest_record %}
+{{ latest_record["status"] }}
+Temperature Category: {{ latest_record["temp_category"] }}
+
+Heart Rate Category: {{ latest_record["heart_category"] }}
+
+Detected Condition: {{ latest_record["condition"].replace("-", " ").title() }}
+
+Explanation: {{ latest_record["explanation"] }}
+
+Suggestions: {{ latest_record["suggestions"] }}
+
+{% else %}
+Save a health record to see analysis, suggestions, and doctor recommendations.
+
+{% endif %}
+Static Graphs
+Offline line graphs based on locally stored health records.
+
+Temperature vs Time
+Heart Rate vs Time
+Recommended Doctors
+Static doctor list filtered using the detected condition from the latest record.
+
+{% for doctor in doctors %}
+{{ doctor["name"] }}
+Specialization: {{ doctor["specialization"] }}
+
+Contact: {{ doctor["contact"] }}
+
+{% else %}
+No recommendation yet
+Add a health record first to display matched doctor suggestions.
+
+{% endfor %}
+Saved Records and Reports
+Download offline PDF reports for any saved record.
+
+{% for record in records %} {% else %} {% endfor %}
+Date / Time	Patient	Temperature	Heart Rate	Status	Preference	Report
+{{ record["created_at"] }}	{{ record["patient_name"] }}	{{ "%.1f"|format(record["body_temperature"]) }} Â°F	{{ record["heart_rate"] }} bpm	{{ record["status"] }}	{{ record["preference"] }}	Download PDF
+No records saved yet.
+{% endblock %}
